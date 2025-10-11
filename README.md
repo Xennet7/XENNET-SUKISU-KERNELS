@@ -1,4 +1,4 @@
-# 🔥 XENNET KernelSu Next Kernels
+# 🔥 XENNET SUKISU Kernels
 
 ### Warning
 
