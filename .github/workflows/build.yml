@@ -182,7 +182,7 @@ jobs:
       - name: Add SUKISU
         run: |
           cd "$CONFIG"
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-test
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
           
       - name: Apply SUSFS Patches for SUKISU
         run: |
