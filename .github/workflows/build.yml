@@ -87,6 +87,7 @@ jobs:
           
           git clone https://github.com/Xennet7/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           git clone https://github.com/WildKernels/kernel_patches.git
+          git clone https://github.com/ShirkNeko/SukiSU_patch.git
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
           
          ## Checkout specific commits for certain Android/kernel version combinations
@@ -197,7 +198,7 @@ jobs:
 
       - name: Getting SUKISU Version
         run: |
-          cd "$CONFIG/SukiSU-Ultra/kernel"
+          cd "$CONFIG/KernelSU/kernel"
           BASE_VERSION=10200
           COMMIT_COUNT=$(/usr/bin/git rev-list --count HEAD)
           KSU_VERSION=$(expr $COMMIT_COUNT "+" $BASE_VERSION)
@@ -352,6 +353,17 @@ jobs:
           else
             tools/bazel build --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
+
+      - name: Apply KPM Patches
+        run: |
+            echo "Patching Image file..."
+            cd "$CONFIG/bazel-bin/common/kernel_aarch64/"
+            curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
+            chmod 777 patch
+            ./patch
+            rm -rf Image
+            mv oImage Image
+            cd ../../..
 
       - name: Create AK3 ZIP
         run: |
