@@ -1,6 +1,8 @@
-# 🔥 XENNET SUKISU Kernels
+# 🔥 XENNET Kernels
 
 ### Warning
+
+This is my Multipurpose Android Kernel Builder
 
 These Kernels are for my personal use and personal use only...
 
