@@ -377,11 +377,15 @@ jobs:
 
       - name: Getting SUKISU Version
         run: |
-          cd "$CONFIG/KernelSU/kernel"
-          BASE_VERSION=10200
-          COMMIT_COUNT=$(/usr/bin/git rev-list --count HEAD)
-          KSU_VERSION=$(expr $COMMIT_COUNT "+" $BASE_VERSION)
+          git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git Verfold
+          cd Verfold
+          KSU_GIT_VERSION=$(git rev-list --count HEAD)
+          KSU_VERSION=$((10000 + KSU_GIT_VERSION + VAR))
+          echo $KSU_VERSION
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+          echo "Deleting the directory"
+          cd ..
+          rm -rf Verfold
           
   
       - name: Apply HOOKS patch
