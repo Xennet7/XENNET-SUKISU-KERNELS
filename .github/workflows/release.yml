@@ -1,25 +1,16 @@
-name: Build Kernels
+name: Release
 
 permissions:
   contents: write
   actions: write
 
 on:
-  workflow_dispatch:
+  workflow_call: # This allows this workflow to be called from another workflow
 
 jobs:
 
-
-  build-a15-6-6:
-    uses: ./.github/workflows/kernel-a15-6-6.yml
-    secrets: inherit
-
   release:
     runs-on: ubuntu-latest
-    needs:
-     
-      - build-a15-6-6
-
     env:
       GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Kernels With XKNXT & SUSFS v1.5.11"
@@ -101,7 +92,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           path: ./downloaded-artifacts
-          pattern: 'XKNXT-*-AnyKernel3'
+          pattern: 'XSUKI-*-AnyKernel3'
 
       - name: List downloaded artifacts
         run: |
