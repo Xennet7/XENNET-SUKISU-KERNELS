@@ -1,14 +1,14 @@
 name: Auto Trigger on SukiSU Update
 
 on:
-  schedule:
-    - cron: '0 0 */2 * *'  # 每两天执行一次
-  workflow_dispatch:     # 允许手动触发
+  #schedule:
+    #- cron: '0 0 */2 * *'  # Execute every two days
+  workflow_dispatch:     # Allows manual triggering
 
 jobs:
   check-and-trigger:
     runs-on: ubuntu-latest
-    # 如果要运行自动编译工作流，请手动添加/修改仓库所有者用户名
+    # If you want to run an automatic compilation workflow, please manually add/modify the repository owner username
     if: contains(fromJSON('["zzh20188", "elysias123"]'), github.repository_owner)
     steps:
       - name: Checkout repository
