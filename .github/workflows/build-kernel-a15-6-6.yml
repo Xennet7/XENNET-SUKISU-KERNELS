@@ -88,4 +88,7 @@ jobs:
     secrets: inherit
     with:
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
+  release:
+    uses: ./.github/workflows/release.yml
+    secrets: inherit
 
