@@ -91,4 +91,6 @@ jobs:
   release:
     uses: ./.github/workflows/release.yml
     secrets: inherit
-
+    needs:
+      - build-kernel-a15-6-6
+      - get-ksu-manager  # Waits for both to complete
