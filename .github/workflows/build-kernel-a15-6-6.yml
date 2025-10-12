@@ -41,7 +41,7 @@ on:
         type: boolean
         default: true
       use_bbg:
-        description: ' you want to enable the BBG write-blocking patch? (Please close it if it reports an error)'
+        description: 'Do you want to enable the BBG write-blocking patch? (Please close it if it reports an error)'
         required: true
         type: boolean
         default: true
