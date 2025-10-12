@@ -32,7 +32,7 @@ on:
       #   required: false
       #   type: string  # This input is required if 'Other' is chosen
       version:
-        description: 'Custom version name (e.g., if the characters after 5.10.198 are left blank, the default version number will be used)'
+        description: 'Custom version name (e.g., if the characters after 6.1.93 are left blank, the default version number will be used)'
         required: false
         type: string
       build_time:
