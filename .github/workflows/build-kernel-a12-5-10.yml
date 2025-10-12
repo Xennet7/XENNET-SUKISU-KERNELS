@@ -1,4 +1,4 @@
-name: 编译内核a12-5-10
+name: Compile kernel a12-5-10
 
 permissions:
   contents: write  # Allow writing to repository contents (for pushing tags)
@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
     inputs:
       kernelsu_variant:
-        # description: "选择 KernelSU | 注意:选中MKSU时为标准版"
-        description: "选择 KernelSU"
+        # description: "Select KernelSU | Note: Select MKSU for the standard version"
+        description: "Select KernelSU"
         required: true
         type: choice
         options:
@@ -19,48 +19,48 @@ on:
           - SukiSU
         default: SukiSU
       kernelsu_branch:
-        description: "选择 ksu 分支"
+        description: "Select the ksu branch"
         required: true
         type: choice
         options:
-          - Stable(标准)
-          - Dev(开发)
-          - Other(其他/指定)
-        default: Stable(标准)
+          - Stable
+          - Dev
+          - Other
+        default: Stable
       # kernelsu_branch_other:
-      #   description: "如果选择了 “其他”，请指定您的自定义分支"
+      #   description: "If you selected "Other", specify your custom branch"
       #   required: false
       #   type: string  # This input is required if 'Other' is chosen
       version:
-        description: '自定义版本名(如5.10.198后面的字符/留空则使用默认版本号)'
+        description: 'Custom version name (e.g., if the characters after 5.10.198 are left blank, the default version number will be used)'
         required: false
         type: string
       build_time:
-        description: '设置内核构建时间(格式见仓库说明)'
+        description: 'Set kernel build time (format see repository description)'
         required: false
         type: string
       use_zram:
-        description: '是否开启增加更多ZRAM算法?'
+        description: 'Do you want to enable adding more ZRAM algorithms?'
         required: true
         type: boolean
         default: true
       use_bbg:
-        description: '是否开启BBG防格机补丁?（报错请关闭）'
+        description: 'Do you want to enable the BBG write-blocking patch? (Please close it if it reports an error)'
         required: true
         type: boolean
         default: true
       use_kpm:
-        description: '是否开启KPM功能?'
+        description: 'Do you want the KPM function enabled?'
         required: true
         type: boolean
         default: true
       get_manager:
-        description: '获取最新KSU管理器和SUS模块?'
+        description: 'Get the latest KSU Manager and SUSFS modules?'
         required: true
         type: boolean
         default: true
       onlyAk3:
-        description: '仅上传AK3压缩包?(无boot,下载更快)'
+        description: 'Upload only AK3 compressed package? (No boot, faster download)'
         required: false
         type: boolean
         default: false
