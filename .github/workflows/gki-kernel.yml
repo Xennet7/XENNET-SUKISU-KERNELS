@@ -784,12 +784,12 @@ jobs:
           # Check for nested zip with same name
           INNER_ZIP=$(find "$TMPDIR" -type f -name "$ZIP_NAME" | head -n 1 || true)
           if [ -n "$INNER_ZIP" ]; then
-           echo "Nested zip detected: $INNER_ZIP"
-           cp "$INNER_ZIP" "./"
-           rm "$ZIP_NAME"
-           mv "$(basename "$INNER_ZIP")" "$ZIP_NAME"
-           else
-           echo "No nested zip detected. All good."
+            echo "Nested zip detected: $INNER_ZIP"
+            cp "$INNER_ZIP" "./"
+            rm "$ZIP_NAME"
+            mv "$(basename "$INNER_ZIP")" "$ZIP_NAME"
+          else
+            echo "No nested zip detected. All good."
           fi
           rm -rf "$TMPDIR"
 
