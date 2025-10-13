@@ -772,9 +772,26 @@ jobs:
           #ZIP_NAME="XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3.zip"
           ZIP_NAME="XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
           echo "Creating zip file: $ZIP_NAME..."
-          mv ../Image ./Image
+          echo "Creating AnyKernel3 zip..."
           zip -r "../$ZIP_NAME" ./*
-          rm ./Image
+
+          cd ..
+
+          # --- Bulletproof nested-zip correction ---
+          TMPDIR=$(mktemp -d)
+          unzip -q "$ZIP_NAME" -d "$TMPDIR"
+
+          # Check for nested zip with same name
+          INNER_ZIP=$(find "$TMPDIR" -type f -name "$ZIP_NAME" | head -n 1 || true)
+          if [ -n "$INNER_ZIP" ]; then
+           echo "Nested zip detected: $INNER_ZIP"
+           cp "$INNER_ZIP" "./"
+           rm "$ZIP_NAME"
+           mv "$(basename "$INNER_ZIP")" "$ZIP_NAME"
+           else
+           echo "No nested zip detected. All good."
+          fi
+          rm -rf "$TMPDIR"
 
           
       - name: Create Bootimgs Folder and Copy Images for Android 12/13
