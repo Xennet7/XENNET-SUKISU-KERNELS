@@ -99,7 +99,17 @@ jobs:
         run: |
           echo "Contents of downloaded-artifacts:"
           ls -R downloaded-artifacts || echo "Folder empty"
-
+      
+      - name: Extract downloaded artifacts
+        run: |
+          mkdir -p extracted
+          for artifact in downloaded-artifacts/*.zip; do
+            echo "Extracting $artifact..."
+            unzip -q "$artifact" -d extracted
+          done
+          echo "Contents after extraction:"
+          ls -R extracted
+     
       - name: Set release body
         run: |
           cat << 'EOF' > release_body.md
