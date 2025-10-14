@@ -87,10 +87,8 @@ jobs:
         run: |
           # Set CONFIG dynamically based on inputs values
           CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}"
-
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
-
           echo "CONFIG set to: $CONFIG"
 
       # Install ccache
@@ -180,10 +178,8 @@ jobs:
         run: |
           # Set CONFIG dynamically based on inputs values
           CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}"
-
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
-
           echo "CONFIG set to: $CONFIG"
 
       - name: Initialize and synchronize kernel source code
@@ -221,20 +217,20 @@ jobs:
 
       - name: Apply glibc 2.38 Compatibility Fix
         run: |
-          if [ ! -e build/build.sh ]; then 
+          #if [ ! -e build/build.sh ]; then 
             GLIBC_VERSION=$(ldd --version 2>/dev/null | head -n 1 | awk '{print $NF}') 
             if [ "$(printf '%s\n' "2.38" "$GLIBC_VERSION" | sort -V | head -n1)" = "2.38" ]; then 
               cd $CONFIG/common/ && sed -i '/\$(Q)\$(MAKE) -C \$(SUBCMD_SRC) OUTPUT=\$(abspath \$(dir \$@))\/ \$(abspath \$@)/s//$(Q)$(MAKE) -C $(SUBCMD_SRC) EXTRA_CFLAGS="$(CFLAGS)" OUTPUT=$(abspath $(dir $@))\/ $(abspath $@)/' tools/bpf/resolve_btfids/Makefile 2>/dev/null || true
             fi 
-          fi
-
-      #- name: Fix Less Then 6.6.50 Builds
-        #if: inputs.android_version == 'android15' && inputs.kernel_version == '6.6'
-        #run: |
-          #cd "$CONFIG/common"
-          #if ! grep -qxF '#include <trace/hooks/fs.h>' ./fs/namespace.c; then
-              #sed -i '/#include <trace\/hooks\/blk.h>/a #include <trace\/hooks\/fs.h>' ./fs/namespace.c
           #fi
+
+      - name: Fix Less Then 6.6.50 Builds
+        if: inputs.android_version == 'android15' && inputs.kernel_version == '6.6'
+        run: |
+          cd "$CONFIG/common"
+          if ! grep -qxF '#include <trace/hooks/fs.h>' ./fs/namespace.c; then
+              #sed -i '/#include <trace\/hooks\/blk.h>/a #include <trace\/hooks\/fs.h>' ./fs/namespace.c
+          fi
 
       - name: Make GKI work normally on OnePlus 8E platform
         if: ${{ inputs.supp_op }}
@@ -252,10 +248,8 @@ jobs:
       
       - name: Determine the branch of KernelSU
         run: |
-
           branch_input="${{ inputs.kernelsu_branch }}"
           variant_input="${{ inputs.kernelsu_variant }}"
-
           case "$branch_input" in
             "Stable")
               case "$variant_input" in
@@ -291,7 +285,6 @@ jobs:
         run: |
           echo "Change to the configuration directory: $CONFIG..."
           cd "$CONFIG"
-
           if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "Adding KernelSU Official..."
             curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash $BRANCH
@@ -305,6 +298,18 @@ jobs:
             echo "Adding KernelSU SukiSU..."
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash $BRANCH
           fi
+
+      - name: Getting SUKISU Version
+        run: |
+          git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git Verfold
+          cd Verfold
+          KSU_GIT_VERSION=$(git rev-list --count HEAD)
+          KSU_VERSION=$((10700 + KSU_GIT_VERSION + VAR))
+          echo $KSU_VERSION
+          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+          echo "Deleting the directory"
+          cd ..
+          rm -rf Verfold          
       
       - name: SUKISU Manager Information
         if: ${{ inputs.kernelsu_variant == 'SukiSU' }}
@@ -320,20 +325,17 @@ jobs:
         run: |
           echo "Change to the configuration directory: $CONFIG..."
           cd "$CONFIG"
-
           echo "Applying SUSFS patches..."
-
           # Copy SUSFS patches
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch ./common/
           cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-
+          
           if [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "Applying SUSFS patches for Official KernelSU..."
             cd ./KernelSU
             cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./ 
             patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
-
             # echo "Applying Official specific patches..."
             # cp ../../zzh_patch/mksu_core_hook.c.patch ./
             # patch -p1 --fuzz=3 < mksu_core_hook.c.patch
@@ -357,10 +359,8 @@ jobs:
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             echo "Applying SUSFS patches for MKSU..."
             cd ./KernelSU
-
             cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
             patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
-
             # echo "Applying MKSU specific patches..."
             # cp ../../zzh_patch/mksu_core_hook.c.patch ./
             # patch -p1 --fuzz=3 < mksu_core_hook.c.patch
@@ -375,8 +375,6 @@ jobs:
           fi
 
           cd ../common
-
-
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
           if [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
@@ -390,26 +388,12 @@ jobs:
                [ ${{ inputs.sub_level }} -lt 136 ]; }; then
             cp ../../zzh_patch/5.10-patch/fdinfo.c.patch ./
             patch -p1 < fdinfo.c.patch
-          fi
-
-      - name: Getting SUKISU Version
-        run: |
-          git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git Verfold
-          cd Verfold
-          KSU_GIT_VERSION=$(git rev-list --count HEAD)
-          KSU_VERSION=$((10700 + KSU_GIT_VERSION + VAR))
-          echo $KSU_VERSION
-          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-          echo "Deleting the directory"
-          cd ..
-          rm -rf Verfold
-          
+          fi    
   
       - name: Apply HOOKS patch
         run: |
           echo "Change to the configuration directory: $CONFIG..."
           cd "$CONFIG/common"
-
           if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
             echo "Applying hooks for KernelSU-Next..."
             cp ../../kernel_patches/next/scope_min_manual_hooks_v1.4.patch ./
@@ -423,7 +407,6 @@ jobs:
       - name: Upgrade LZ4 to 1.10.0
         if: ${{ inputs.use_zram }}
         run: |
-
           echo "Change to the configuration directory: $CONFIG..."
           cd "$CONFIG/common"
           echo "lz upgrade"
@@ -434,7 +417,6 @@ jobs:
               "lib/lz4/lz4defs.h"
               "lib/lz4/lz4hc_compress.c"
           )
-
           for file in "${files[@]}"; do
               if [ -e "$file" ]; then
                   rm "$file"
@@ -472,17 +454,14 @@ jobs:
           cp -r ../../SukiSU_patch/other/zram/lz4k/lib/* ./lib/
           cp -r ../../SukiSU_patch/other/zram/lz4k/crypto/* ./crypto/
           cp -r ../../SukiSU_patch/other/zram/lz4k_oplus ./lib/
-
           cp ../../SukiSU_patch/other/zram/zram_patch/${{ inputs.kernel_version }}/lz4kd.patch ./
           echo "Applying lz4kd patch"
           patch -p1 -F 3 < lz4kd.patch || true
           echo "Completed LZ4KD patch"
-
           cp ../../SukiSU_patch/other/zram/zram_patch/${{ inputs.kernel_version }}/lz4k_oplus.patch ./
           echo "Applying lz4k_oplus patch"
           patch -p1 -F 3 < lz4k_oplus.patch || true
           echo "Completed the lz4k_oplus patch"
-
       
       - name: Fixing Wi-Fi and Bluetooth functionality on Samsung 6.6 GKI devices
         if: ${{ ( inputs.kernel_version == '6.6' ) }}
@@ -511,7 +490,6 @@ jobs:
           set -e
           echo "Write LZ4KD&ZSTDN config dependency"
           CONFIG_FILE="$CONFIG/common/arch/arm64/configs/gki_defconfig"
-
           if [ "${{ inputs.kernel_version }}" = "5.10" ]; then
             echo "CONFIG_ZSMALLOC=y" >> "$CONFIG_FILE"
             echo "CONFIG_ZRAM=y" >> "$CONFIG_FILE"
@@ -559,8 +537,7 @@ jobs:
           echo "Adding BBG..."
           wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash
           echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
-          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' common/security/Kconfig    
-          
+          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' common/security/Kconfig              
           
       - name: Add SUSFS configuration settings
         run: |
@@ -719,13 +696,9 @@ jobs:
             set -e
             set -x
             cd "$CONFIG"
-
             sed -i 's/BUILD_SYSTEM_DLKM=1/BUILD_SYSTEM_DLKM=0/' ./common/build.config.gki.aarch64
             sed -i '/MODULES_ORDER=android\/gki_aarch64_modules/d' ./common/build.config.gki.aarch64
             sed -i '/KMI_SYMBOL_LIST_STRICT_MODE/d' ./common/build.config.gki.aarch64
-
-            
-            
             echo "Building the kernel..."
             if [ -f "build/build.sh" ]; then
               LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh CC="/usr/bin/ccache clang" || exit 1
@@ -735,7 +708,7 @@ jobs:
               strings ./bazel-bin/common/kernel_aarch64/Image | grep 'Linux version'
             fi
 
-      - name: Patch Image file with KPM (sukisu only)
+      - name: Patch Image file Android 12 and Android 13 with KPM (SukiSU only)
         if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' && (inputs.android_version == 'android12' || inputs.android_version == 'android13') }}
         run: |
           if [ "${{ inputs.kernel_version }}" != "6.6" ]; then
@@ -749,7 +722,7 @@ jobs:
             cd ../../../..
           fi
 
-      - name: Patch Image File Android 14 and Android 15 with KPM (sukisu only)
+      - name: Patch Image File Android 14 and Android 15 with KPM (SukiSU only)
         if: ${{ inputs.use_kpm && inputs.kernelsu_variant == 'SukiSU' && (inputs.android_version == 'android14' || inputs.android_version == 'android15') }}
         run: |
             echo "Patching Image file..."
@@ -772,7 +745,6 @@ jobs:
             echo "Error: Image file not found in any expected location"
             exit 1
           fi
-
           cd AnyKernel3
           
           # Use actual sublevel for LTS builds if available
@@ -791,13 +763,11 @@ jobs:
         if: ${{ inputs.android_version == 'android12' || inputs.android_version == 'android13' }}
         run: |
           mkdir bootimgs
-
           echo "Creating bootimgs folder and copying images..."
           cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./bootimgs
           cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./bootimgs
           cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image ./
           cp ./$CONFIG/out/${{ inputs.android_version }}-${{ inputs.kernel_version }}/dist/Image.lz4 ./
-
           # Create gzip of the Image file
           gzip -n -k -f -9 ./Image > ./Image.gz
           gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
@@ -806,13 +776,11 @@ jobs:
         if: ${{ inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
         run: |
           mkdir bootimgs
-
           echo "Creating bootimgs folder and copying images..."
           cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./bootimgs
           cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./bootimgs
           cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image ./
           cp ./$CONFIG/bazel-bin/common/kernel_aarch64/Image.lz4 ./
-
           # Create gzip of the Image file
           gzip -n -k -f -9 ./Image > ./Image.gz
           gzip -n -k -f -9 ./Image > ./bootimgs/Image.gz
@@ -821,21 +789,18 @@ jobs:
         if: ${{ inputs.android_version == 'android12' }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
-          cd bootimgs
-          
+          cd bootimgs   
           # Prepare sublevel for naming
           SUBLEVEL_FOR_NAME="${{ inputs.sub_level }}"
           if [ -n "$ACTUAL_SUBLEVEL" ]; then
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
-          fi
-          
+          fi        
           GKI_URL=https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-"${{ inputs.os_patch_level }}"_"${{ inputs.revision }}".zip
           FALLBACK_URL=https://dl.google.com/android/gki/gki-certified-boot-android12-5.10-2023-01_r1.zip
           
           # Check if the GKI URL is available
           echo "Checking if GKI kernel URL is reachable: $GKI_URL"
           status=$(curl -sL -w "%{http_code}" "$GKI_URL" -o /dev/null)
-          
           if [ "$status" = "200" ]; then
               echo "[+] Downloading from GKI_URL"
               curl -Lo gki-kernel.zip "$GKI_URL"
