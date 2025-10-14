@@ -553,11 +553,12 @@ jobs:
           fi
       
       - name: BBG patch
+        if: ${{ inputs.use_bbg }}
         run: |
           cd "$CONFIG"
           echo "Adding BBG..."
           curl -sSL https://github.com/zzh20188/Baseband-guard/raw/refs/heads/stable/setup.sh -o setup.sh
-          bash setup.sh stable || true
+          bash setup.sh || true
           echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
           
           if [ "${{ inputs.kernel_version }}" = "5.10" ]; then
@@ -586,7 +587,6 @@ jobs:
           
           # Add SUSFS configuration settings
           echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
