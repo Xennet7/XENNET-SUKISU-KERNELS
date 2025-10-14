@@ -98,7 +98,7 @@ jobs:
                 "kernelsu_variant": "SukiSU",
                 "kernelsu_branch": "Stable(标准)",
                 "version": "",
-                "use_zram": "true",
+                "use_zram": "false",
                 "use_bbg": "true",
                 "use_kpm": "true",
                 "get_manager": "true"
