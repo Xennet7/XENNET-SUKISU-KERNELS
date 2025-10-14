@@ -1,4 +1,4 @@
-name: 测试发布
+name: Test release
 
 permissions:
   contents: write  # Allow writing to repository contents (for pushing tags)
