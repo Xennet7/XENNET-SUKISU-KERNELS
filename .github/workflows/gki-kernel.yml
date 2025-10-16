@@ -83,77 +83,45 @@ jobs:
           remove-cached-tools: 'false'   # Avoid unless confirmed safe
           verbose: 'true'                # Enable detailed logging
 
-      - name: Setting the CONFIG environment variable
+      - name: Set CONFIG Environment Variable
         run: |
           # Set CONFIG dynamically based on inputs values
           CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}"
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
-          echo "CONFIG set to: $CONFIG"
+
 
       # Install ccache
       - name: Installation of Dependencies
         run: sudo apt update && sudo apt upgrade -y && sudo apt install -y ccache python3 git curl build-essential libssl-dev bison flex libelf-dev dwarves
 
-      - name: Configuring ccache
-        run: |
-          mkdir -p ~/.cache/bazel
-          ccache --version
-          ccache --max-size=2G
-          ccache --set-config=compression=true
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
-
-      - name: Restore ccache from cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-${{ github.sha }}
-          restore-keys: |
-            ${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}-ccache-
-
-      - name: Caching toolchain
-        id: cache-toolchain
-        uses: actions/cache@v4
-        with:
-          path: |
-            kernel-build-tools
-            mkbootimg
-          key: toolchain-${{ runner.os }}-v1
-
-      # Step 2: Download toolchain if cache was not found
-      - name: Download toolchain (if no cache found)
-        if: steps.cache-toolchain.outputs.cache-hit != 'true'
+      - name: Setup Build Environment
         run: |
           AOSP_MIRROR=https://android.googlesource.com
-          BRANCH=main-kernel-build-2024
-          git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools
-          git clone $AOSP_MIRROR/platform/system/tools/mkbootimg -b $BRANCH --depth 1 mkbootimg
-
-      - name: Setting environment variables
-        run: |
+          BRANCH=main-kernel-2025
+          git clone $AOSP_MIRROR/kernel/prebuilts/build-tools -b $BRANCH --depth 1 kernel-build-tools &
+          git clone $AOSP_MIRROR/platform/system/tools/mkbootimg -b $BRANCH --depth 1 mkbootimg &
+          wait
+          
           echo "AVBTOOL=$GITHUB_WORKSPACE/kernel-build-tools/linux-x86/bin/avbtool" >> $GITHUB_ENV
           echo "MKBOOTIMG=$GITHUB_WORKSPACE/mkbootimg/mkbootimg.py" >> $GITHUB_ENV
           echo "UNPACK_BOOTIMG=$GITHUB_WORKSPACE/mkbootimg/unpack_bootimg.py" >> $GITHUB_ENV
-
-      - name: Configuring Git
-        run: |
-          git config --global user.name "zzh20188"
-          git config --global user.email "BuildGkiKernel@gmail.com"
-      
-      - name: Key settings - modified by mkppk
-        env:
-          BOOT_SIGN_KEY: ${{ secrets.BOOT_SIGN_KEY }}
-        run: |
-            openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 > ./kernel-build-tools/linux-x86/share/avb/testkey_rsa2048.pem
-            echo "BOOT_SIGN_KEY_PATH=$GITHUB_WORKSPACE/kernel-build-tools/linux-x86/share/avb/testkey_rsa2048.pem" >> $GITHUB_ENV
-
-      - name: Install the repository
-        run: |
-          # Install dependencies
+          echo "BOOT_SIGN_KEY_PATH=$GITHUB_WORKSPACE/kernel-build-tools/linux-x86/share/avb/testkey_rsa2048.pem" >> $GITHUB_ENV
+          echo "PATH=$GITHUB_WORKSPACE/kernel-build-tools/linux-x86/bin:$PATH" >> $GITHUB_ENV
+          
           mkdir -p ./git-repo
           curl https://storage.googleapis.com/git-repo-downloads/repo > ./git-repo/repo
           chmod a+rx ./git-repo/repo
           echo "REPO=$GITHUB_WORKSPACE/./git-repo/repo" >> $GITHUB_ENV
+
+      - name: Set boot sign key
+        env:
+          BOOT_SIGN_KEY: ${{ secrets.BOOT_SIGN_KEY }}
+        run: |
+          if [ ! -z "$BOOT_SIGN_KEY" ]; then
+            echo "$BOOT_SIGN_KEY" > ./kernel-build-tools/linux-x86/share/avb/testkey_rsa2048.pem
+          fi
+
 
       - name: Clone AnyKernel3 and other dependencies
         run: |
@@ -174,45 +142,44 @@ jobs:
           # Next fix patch
           git clone https://github.com/zzh20188/GKI_KernelSU_SUSFS.git zzh_patch
           
-      - name: Set the CONFIG environment variable
+  
+      - name: Initialize and Sync Kernel Source
         run: |
-          # Set CONFIG dynamically based on inputs values
-          CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.sub_level }}"
-          # Set CONFIG as an environment variable for future steps
-          echo "CONFIG=$CONFIG" >> $GITHUB_ENV
-          echo "CONFIG set to: $CONFIG"
-
-      - name: Initialize and synchronize kernel source code
-        run: |
-          echo "Creating folder for configuration: $CONFIG..."
           mkdir -p "$CONFIG"
           cd "$CONFIG"
-          git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-gnu-6.4.1.git gcc
-          ls gcc/bin
-          # Initialize and sync kernel source
-          echo "Initializing and syncing kernel source..."
+          
           FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}-${{ inputs.os_patch_level }}"
+          
           $REPO init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-${FORMATTED_BRANCH} --repo-rev=v2.16
+          
           REMOTE_BRANCH=$(git ls-remote https://android.googlesource.com/kernel/common ${FORMATTED_BRANCH})
           DEFAULT_MANIFEST_PATH=.repo/manifests/default.xml
-          # Check if branch is deprecated
           if grep -q deprecated <<< $REMOTE_BRANCH; then
-            echo "Found deprecated branch: $FORMATTED_BRANCH"
             sed -i "s/\"${FORMATTED_BRANCH}\"/\"deprecated\/${FORMATTED_BRANCH}\"/g" $DEFAULT_MANIFEST_PATH
           fi
-          # Sync repo and apply patches
-          $REPO --version
+          
           $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
-          echo "REMOTE_BRANCH=$REMOTE_BRANCH" >> $GITHUB_ENV
 
-          FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}"
-          if grep -q deprecated <<< "$REMOTE_BRANCH" && \
-             { [ "$FORMATTED_BRANCH" == "android13-5.15" ] && \
-               [ ${{ inputs.sub_level }} -lt 123 ]; }; then
-            echo 'Fixed the bug that 5.15 only supports the old version of C library'
-            cd ./common
-            curl -LSsO https://github.com/zzh20188/GKI_KernelSU_SUSFS/raw/refs/heads/dev/5.15-patch/fix_5.15.legacy.patch
-            patch -p1 < fix_5.15.legacy.patch
+      - name: Extract Actual Sublevel for LTS Builds
+        if: inputs.sub_level == 'X'
+        run: |
+          cd "$CONFIG/common"
+          
+          if [ -f "Makefile" ]; then
+            ACTUAL_SUBLEVEL=$(grep '^SUBLEVEL = ' Makefile | awk '{print $3}')
+            
+            if [ -n "$ACTUAL_SUBLEVEL" ]; then
+              OLD_CONFIG="$CONFIG"
+              NEW_CONFIG="${{ inputs.android_version }}-${{ inputs.kernel_version }}-$ACTUAL_SUBLEVEL"
+              
+              echo "CONFIG=$NEW_CONFIG" >> $GITHUB_ENV
+              echo "ACTUAL_SUBLEVEL=$ACTUAL_SUBLEVEL" >> $GITHUB_ENV
+              
+              cd ../..
+              if [ -d "$OLD_CONFIG" ]; then
+                mv "$OLD_CONFIG" "$NEW_CONFIG"
+              fi
+            fi
           fi
 
       #- name: Apply glibc 2.38 Compatibility Fix
@@ -231,6 +198,12 @@ jobs:
           if ! grep -qxF '#include <trace/hooks/fs.h>' ./fs/namespace.c; then
               sed -i '/#include <trace\/hooks\/blk.h>/a #include <trace\/hooks\/fs.h>' ./fs/namespace.c
           fi
+
+      - name: Apply ptrace patch for older kernels
+        if: fromJSON(inputs.kernel_version) < 5.16
+        run: |
+          cd "$CONFIG/common"
+          patch -p1 -F 3 < "../../kernel_patches/gki_ptrace.patch"
 
       - name: Make GKI work normally on OnePlus 8E platform
         if: ${{ inputs.supp_op }}
