@@ -215,21 +215,21 @@ jobs:
             patch -p1 < fix_5.15.legacy.patch
           fi
 
-      - name: Apply glibc 2.38 Compatibility Fix
-        run: |
+      #- name: Apply glibc 2.38 Compatibility Fix
+        #run: |
           #if [ ! -e build/build.sh ]; then 
-            GLIBC_VERSION=$(ldd --version 2>/dev/null | head -n 1 | awk '{print $NF}') 
-            if [ "$(printf '%s\n' "2.38" "$GLIBC_VERSION" | sort -V | head -n1)" = "2.38" ]; then 
-              cd $CONFIG/common/ && sed -i '/\$(Q)\$(MAKE) -C \$(SUBCMD_SRC) OUTPUT=\$(abspath \$(dir \$@))\/ \$(abspath \$@)/s//$(Q)$(MAKE) -C $(SUBCMD_SRC) EXTRA_CFLAGS="$(CFLAGS)" OUTPUT=$(abspath $(dir $@))\/ $(abspath $@)/' tools/bpf/resolve_btfids/Makefile 2>/dev/null || true
-            fi 
+            #GLIBC_VERSION=$(ldd --version 2>/dev/null | head -n 1 | awk '{print $NF}') 
+            #if [ "$(printf '%s\n' "2.38" "$GLIBC_VERSION" | sort -V | head -n1)" = "2.38" ]; then 
+              #cd $CONFIG/common/ && sed -i '/\$(Q)\$(MAKE) -C \$(SUBCMD_SRC) OUTPUT=\$(abspath \$(dir \$@))\/ \$(abspath \$@)/s//$(Q)$(MAKE) -C $(SUBCMD_SRC) EXTRA_CFLAGS="$(CFLAGS)" OUTPUT=$(abspath $(dir $@))\/ $(abspath $@)/' tools/bpf/resolve_btfids/Makefile 2>/dev/null || true
+            #fi 
           #fi
 
       - name: Fix Less Then 6.6.50 Builds
-        if: inputs.android_version == 'android15' && inputs.kernel_version == '6.6'
+        if: inputs.android_version == 'android15' && inputs.kernel_version == '6.6' && inputs.sub_level < 50
         run: |
           cd "$CONFIG/common"
           if ! grep -qxF '#include <trace/hooks/fs.h>' ./fs/namespace.c; then
-              #sed -i '/#include <trace\/hooks\/blk.h>/a #include <trace\/hooks\/fs.h>' ./fs/namespace.c
+              sed -i '/#include <trace\/hooks\/blk.h>/a #include <trace\/hooks\/fs.h>' ./fs/namespace.c
           fi
 
       - name: Make GKI work normally on OnePlus 8E platform
@@ -530,14 +530,34 @@ jobs:
             echo "CONFIG_CRYPTO_LZ4K_OPLUS=y" >> "$CONFIG_FILE"
           fi
       
-      - name: BBG patch
-        if: ${{ inputs.use_bbg }}
+      - name: Add BBG
         run: |
           cd "$CONFIG"
           echo "Adding BBG..."
           wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash
           echo "CONFIG_BBG=y" >> common/arch/arm64/configs/gki_defconfig
-          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' common/security/Kconfig              
+          
+          # Before sed: Show the original LSM default line for comparison
+          echo "=== Before sed ==="
+          sed -n '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ p }' common/security/Kconfig
+          
+          # Apply the sed (your original command)
+          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/landlock/landlock,baseband_guard/ } }' common/security/Kconfig
+          
+          # After sed: Show the updated LSM default line
+          echo "=== After sed ==="
+          sed -n '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ p }' common/security/Kconfig
+          
+          # Confirm baseband_guard is now present (should output the line if successful)
+          echo "=== Confirmation: grep for baseband_guard ==="
+          grep "baseband_guard" common/security/Kconfig || echo "WARNING: baseband_guard not found after sed"
+          
+          # Optional: Show exit status of sed (0 = success)
+          if [ $? -eq 0 ]; then
+            echo "sed command succeeded (exit 0)."
+          else
+            echo "sed command failed (exit $?)."
+          fi
           
       - name: Add SUSFS configuration settings
         run: |
