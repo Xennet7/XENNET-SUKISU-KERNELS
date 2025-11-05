@@ -57,7 +57,7 @@ jobs:
           echo "📄 Sending release notes to Telegram..."
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -F chat_id="${TELEGRAM_CHAT_ID}" \
-            -F text="📄 *Release Notes / Commits:*%0A$release_body" \
+            -F text="$release_body" \
             -F parse_mode=Markdown
           echo "✅ Release notes sent successfully."
 
