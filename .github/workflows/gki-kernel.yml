@@ -287,7 +287,7 @@ jobs:
           cd Verfold
           KSU_GIT_VERSION=$(git rev-list --count HEAD)
           #KSU_VERSION=$((10700 + KSU_GIT_VERSION + VAR))
-          KSU_VERSION=$((26485 + KSU_GIT_VERSION + VAR))
+          KSU_VERSION=$((37185 + KSU_GIT_VERSION + VAR))
           echo $KSU_VERSION
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
           echo "Deleting the directory"
