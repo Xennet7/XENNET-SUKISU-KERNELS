@@ -132,32 +132,15 @@ jobs:
         run: |
           cat << 'EOF' > release_body.md
       
-          **IMPORTANT DISCLAIMER**
-          This software is provided for testing and educational purposes only. Use at your own risk.
-          The developers are not responsible for any damage, data loss, or issues that may occur.
-          Please ensure you have proper backups before installation.
-
-      
-          Features:
-          -> Xennet SUKISU - [XSUKI] - Android15-6.6 Kernels
-          -> Use SukiSu Ultra Manager Only
-          -> SUSFS ඞ v1.5.12
-          -> Scope-Minimized Manual hooks v1.4
-          -> IPSet Support for Advanced Network Filtering
-          -> Wireguard Support
-          -> BBR v1 Support
-          -> Added BBG support to prevent unauthorised writes to certain partitions: https://github.com/vc-teahouse/Baseband-guard
-
-          Notes:
-          -> SUS SU Mode 2 will show as disabled or not compatble due to non-kprobe hooks and is not needed anymore!
-          -> Official Kernel Flasher is broken with latest susfs, try https://github.com/fatalcoder524/KernelFlasher/
-          -> **Warning**: boot.img files may not boot on some Android 16 devices
-      
-          Module: 
-          -> https://github.com/sidex15/ksu_module_susfs
-      
-          Managers:
-          -> SukiSU Ultra: https://github.com/SukiSU-Ultra/SukiSU-Ultra
+          ✨ XENNET SukiSU Ultra
+          🌀 XSUKI v13454 v3.2.0-1ea6af52@susfs-main
+          🛡️ SUSFS ඞ v1.5.12 with SUS MAPS
+          ⚙️ KPM ENABLED
+          🪝 Scope-Minimized Manual Hooks v1.4
+          🌐 IPSet Support for Advanced Network Filtering
+          🟢 WireGuard Support
+          🚀 BBR v1 Support
+          🔒 BBG Protection to Prevent Unauthorized Writes to Certain Partitions
         
           Commit Hashes (at the time of release):
           -> XENNET SukiSU Ultra: [${{ env.WKSU_REF }}](${{ env.WKSU_URL }})
