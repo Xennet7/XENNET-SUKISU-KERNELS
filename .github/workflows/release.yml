@@ -132,15 +132,15 @@ jobs:
         run: |
           cat << 'EOF' > release_body.md
       
-          ✨ XENNET SukiSU Ultra
-          🌀 XSUKI v13454 v3.2.0-1ea6af52@susfs-main
-          🛡️ SUSFS ඞ v1.5.12 with SUS MAPS
-          ⚙️ KPM ENABLED
-          🪝 Scope-Minimized Manual Hooks v1.4
-          🌐 IPSet Support for Advanced Network Filtering
-          🟢 WireGuard Support
-          🚀 BBR v1 Support
-          🔒 BBG Protection to Prevent Unauthorized Writes to Certain Partitions
+          **✨ XENNET SukiSU Ultra**
+          **🌀 XSUKI v13454 v3.2.0-1ea6af52@susfs-main**
+          **🛡️ SUSFS ඞ v1.5.12 with SUS MAPS**
+          **⚙️ KPM ENABLED**
+          **🪝 Scope-Minimized Manual Hooks v1.4**
+          **🌐 IPSet Support for Advanced Network Filtering**
+          **🟢 WireGuard Support**
+          **🚀 BBR v1 Support**
+          **🔒 BBG Protection to Prevent Unauthorized Writes to Certain Partitions**
         
           Commit Hashes (at the time of release):
           -> XENNET SukiSU Ultra: [${{ env.WKSU_REF }}](${{ env.WKSU_URL }})
