@@ -1,4 +1,4 @@
-name: Release
+name: Release Default
 
 permissions:
   contents: write
