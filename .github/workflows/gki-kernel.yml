@@ -809,8 +809,8 @@ jobs:
             SUBLEVEL_FOR_NAME="$ACTUAL_SUBLEVEL"
           fi
           
-          #ZIP_NAME="XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3.zip"
-          ZIP_NAME="XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
+          #ZIP_NAME="$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3.zip"
+          ZIP_NAME="$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-AnyKernel3.zip"
           echo "Creating zip file: $ZIP_NAME..."
           zip -r "../$ZIP_NAME" ./*
   
@@ -879,17 +879,17 @@ jobs:
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
+          cp ./boot.img ../$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
           
           echo "Building boot-gz.img"
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
+          cp ./boot-gz.img ../$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
           
           echo "Building boot-lz4.img"
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img --ramdisk out/ramdisk --os_version 12.0.0 --os_patch_level "${{ inputs.os_patch_level }}"
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
+          cp ./boot-lz4.img ../$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
 
       - name: Android 13/14/15 boot image build script
         if: ${{ inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' }}
@@ -905,39 +905,39 @@ jobs:
           echo "Building boot.img"
           $MKBOOTIMG --header_version 4 --kernel Image --output boot.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot.img ../XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
+          cp ./boot.img ../$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot.img
           
           echo "Building boot-gz.img"
           $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-gz.img ../XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
+          cp ./boot-gz.img ../$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz.img
           
           echo "Building boot-lz4.img"
           $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
-          cp ./boot-lz4.img ../XSUKI-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
+          cp ./boot-lz4.img ../$XNAME-$KSUVER-${{ inputs.android_version }}-${{ inputs.kernel_version }}.$SUBLEVEL_FOR_NAME-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4.img
           
       - name: Upload AnyKernel3 ZIP
         uses: actions/upload-artifact@v4
         with:
-          #name: XSUKI-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3
-          name: XSUKI-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3
+          #name: $XNAME-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-AnyKernel3
+          name: $XNAME-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3
           path: "*.zip"
 
       - name: Upload Boot Image (Uncompressed)
         uses: actions/upload-artifact@v4
         with:
-          name: XSUKI-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot
+          name: $XNAME-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot
           path: "*-boot.img"
 
       - name: Upload Boot Image (GZ Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: XSUKI-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz
+          name: $XNAME-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-gz
           path: "*-boot-gz.img"
 
       - name: Upload Boot Image (LZ4 Compressed)
         uses: actions/upload-artifact@v4
         with:
-          name: XSUKI-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4
+          name: $XNAME-${{ env.KSUVER }}-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ env.ACTUAL_SUBLEVEL || inputs.sub_level }}-${{ inputs.os_patch_level }}-${{ matrix.apply_module_check_bypass && 'Module_Check_Bypass' || 'Normal' }}-boot-lz4
           path: "*-boot-lz4.img"
