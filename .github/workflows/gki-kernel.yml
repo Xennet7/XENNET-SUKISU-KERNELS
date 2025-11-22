@@ -368,12 +368,6 @@ jobs:
                 fake_patched=1
               fi
             fi
-            if [ "${{ inputs.android_version }}" = "android12" ] && [ "${{ inputs.kernel_version }}" = "5.10" ]; then
-              if ! grep -qxF $'\tif (!vma_pages(vma))' ./fs/proc/task_mmu.c; then
-                echo "vma_pages Line not found. Fake Patching!"
-                fake_patched=1
-             fi
-            fi
         
             patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
         
@@ -385,27 +379,13 @@ jobs:
                   sed -i -e '/unsigned int nr_subpages \= __PAGE_SIZE \/ PAGE_SIZE;/d' -e '/pagemap_entry_t \*res = NULL;/d' ./fs/proc/task_mmu.c
                 fi
              fi
-              if [ "${{ inputs.android_version }}" = "android12" ] && [ "${{ inputs.kernel_version }}" = "5.10" ]; then
-                if grep -qxF $'\t\tgoto show_pad;' ./fs/proc/task_mmu.c; then
-                  echo "vma_pages Line found. Revert Fake Patching!"
-                  sed -i -e 's/goto show_pad;/return 0;/' ./fs/proc/task_mmu.c
-                fi
-              fi
             fi
           
 
-          if [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-            cp ../../zzh_patch/rm_devpt.patch ./
-            patch -p1 < rm_devpt.patch
-          fi
-
-          FORMATTED_BRANCH="${{ inputs.android_version }}-${{ inputs.kernel_version }}"
-          if grep -q deprecated <<< "$REMOTE_BRANCH" && \
-             { [ "$FORMATTED_BRANCH" == "android12-5.10" ] && \
-               [ ${{ inputs.sub_level }} -lt 136 ]; }; then
-            cp ../../zzh_patch/5.10-patch/fdinfo.c.patch ./
-            patch -p1 < fdinfo.c.patch
-          fi    
+          #if [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
+            #cp ../../zzh_patch/rm_devpt.patch ./
+            #patch -p1 < rm_devpt.patch
+          #fi
   
       - name: Apply HOOKS patch
         run: |
