@@ -88,8 +88,16 @@ jobs:
     secrets: inherit
     with:
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
-  release:
-    uses: ./.github/workflows/release.yml
+  releasesuki:
+    if: ${{ inputs.kernelsu_variant }}" == "SukiSU"
+    uses: ./.github/workflows/releasesuki.yml
+    secrets: inherit
+    needs:
+      - build-kernel-a15-6-6
+      - get-ksu-manager  # Waits for both to complete
+  releaseksu:
+    if: ${{ inputs.kernelsu_variant }}" == "Official"
+    uses: ./.github/workflows/releaseksu.yml
     secrets: inherit
     needs:
       - build-kernel-a15-6-6
