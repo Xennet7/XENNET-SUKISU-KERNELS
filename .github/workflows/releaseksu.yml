@@ -60,7 +60,7 @@ jobs:
         run: |
           # Get XKNXT latest commit from Next branch
           WKSU_REF=$(git ls-remote "https://github.com/tiann/KernelSU.git" refs/heads/main | awk '{print $1}')
-          WKSU_URL="https://github.com/tiann/KernelSU.git/commit/$WKSU_REF"
+          WKSU_URL="https://github.com/tiann/KernelSU/commit/$WKSU_REF"
           echo "WKSU_REF=$WKSU_REF" >> $GITHUB_ENV
           echo "WKSU_URL=$WKSU_URL" >> $GITHUB_ENV
 
