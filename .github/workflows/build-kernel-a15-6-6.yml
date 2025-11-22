@@ -89,23 +89,30 @@ jobs:
     with:
       kernelsu_variant: ${{ inputs.kernelsu_variant }}
   releasesuki:
-    if: ${{ inputs.kernelsu_variant }}" == "SukiSU"
+    if: ${{ inputs.kernelsu_variant == 'SukiSU' }}
     uses: ./.github/workflows/releasesuki.yml
     secrets: inherit
     needs:
       - build-kernel-a15-6-6
-      - get-ksu-manager  # Waits for both to complete
+      - get-ksu-manager
   releaseksu:
-    if: ${{ inputs.kernelsu_variant }}" == "Official"
+    if: ${{ inputs.kernelsu_variant == 'Official' }}
     uses: ./.github/workflows/releaseksu.yml
     secrets: inherit
     needs:
       - build-kernel-a15-6-6
-      - get-ksu-manager  # Waits for both to complete
+      - get-ksu-manager
   releasemksu:
-    if: ${{ inputs.kernelsu_variant }}" == "MKSU"
+    if: ${{ inputs.kernelsu_variant == 'MKSU' }}
     uses: ./.github/workflows/releasemksu.yml
     secrets: inherit
     needs:
       - build-kernel-a15-6-6
-      - get-ksu-manager  # Waits for both to complete
+      - get-ksu-manager
+  releasenext:
+    if: ${{ inputs.kernelsu_variant == 'Next' }}
+    uses: ./.github/workflows/releasenext.yml
+    secrets: inherit
+    needs:
+      - build-kernel-a15-6-6
+      - get-ksu-manager
