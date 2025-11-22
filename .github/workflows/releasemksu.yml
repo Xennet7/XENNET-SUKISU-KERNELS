@@ -133,7 +133,7 @@ jobs:
           cat << 'EOF' > release_body.md
       
           **✨ XENNET MKSU**
-          **🌀 XKNSU v13454**
+          **🌀 XMKSU v13454**
           **🛡️ SUSFS ඞ v2.0.0**
           **🌐 IPSet Support for Advanced Network Filtering**
           **🟢 WireGuard Support**
