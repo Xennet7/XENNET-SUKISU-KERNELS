@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-      RELEASE_NAME: "GKI Kernels With XSUKI & SUSFS v1.5.12"
+      RELEASE_NAME: "GKI Kernels With XSUKI & SUSFS v2.0.0"
       RELEASE_BODY:
     steps:
       #- name: Maximize Build Space
@@ -134,9 +134,8 @@ jobs:
       
           **✨ XENNET SukiSU Ultra**
           **🌀 XSUKI v13454 v3.2.0-1ea6af52@susfs-main**
-          **🛡️ SUSFS ඞ v1.5.12 with SUS MAPS**
-          **⚙️ KPM ENABLED**
-          **🪝 Scope-Minimized Manual Hooks v1.6**
+          **🛡️ SUSFS ඞ v2.0.0**
+          **⚙️ KPM DISABLED. If needed patch it with SUKISU manger before flashing te kernel**
           **🌐 IPSet Support for Advanced Network Filtering**
           **🟢 WireGuard Support**
           **🚀 BBR v1 Support**
