@@ -102,3 +102,10 @@ jobs:
     needs:
       - build-kernel-a15-6-6
       - get-ksu-manager  # Waits for both to complete
+  releasemksu:
+    if: ${{ inputs.kernelsu_variant }}" == "MKSU"
+    uses: ./.github/workflows/releasemksu.yml
+    secrets: inherit
+    needs:
+      - build-kernel-a15-6-6
+      - get-ksu-manager  # Waits for both to complete
