@@ -88,7 +88,7 @@ jobs:
           KSU_VERSION=$((10000 + KSU_GIT_VERSION + VAR))
           if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             KSU_VERSION=$((40000 + KSU_GIT_VERSION - 2815))
-          elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
+          elif [ "${{ inputs.kernelsu_variant }}" == "Official" ] || [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             KSU_VERSION=$((20000 + KSU_GIT_VERSION))
           fi
           echo $KSU_VERSION
@@ -109,20 +109,19 @@ jobs:
         run: |
           if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
             echo "KernelSU Next..."
-            REPO="KernelSU-Next/KernelSU-Next"
+            KSUM="Manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
             echo "SukiSU..."
-            REPO="SukiSU-Ultra/SukiSU-Ultra"
+            KSUM="Manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
             echo "MKSU..."
-            REPO="5ec1cff/KernelSU"
+            KSUM="Manager"
           elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
             echo "KSU..."
-            REPO="tiann/KernelSU"
+            KSUM="Manager"
           fi
 
           FILENAME=$([[ "${{ inputs.kernelsu_variant }}" == "Next" ]] && echo "build-manager-ci.yml" || echo "build-manager.yml")
-          KSUM=$([[ "${{ inputs.kernelsu_variant }}" == "Next" ]] && echo "Manager" || echo "manager")
           
           # Initialize
           NUMBER=0
