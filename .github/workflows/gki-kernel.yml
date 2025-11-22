@@ -191,15 +191,6 @@ jobs:
             fi
           fi
 
-      #- name: Apply glibc 2.38 Compatibility Fix
-        #run: |
-          #if [ ! -e build/build.sh ]; then 
-            #GLIBC_VERSION=$(ldd --version 2>/dev/null | head -n 1 | awk '{print $NF}') 
-            #if [ "$(printf '%s\n' "2.38" "$GLIBC_VERSION" | sort -V | head -n1)" = "2.38" ]; then 
-              #cd $CONFIG/common/ && sed -i '/\$(Q)\$(MAKE) -C \$(SUBCMD_SRC) OUTPUT=\$(abspath \$(dir \$@))\/ \$(abspath \$@)/s//$(Q)$(MAKE) -C $(SUBCMD_SRC) EXTRA_CFLAGS="$(CFLAGS)" OUTPUT=$(abspath $(dir $@))\/ $(abspath $@)/' tools/bpf/resolve_btfids/Makefile 2>/dev/null || true
-            #fi 
-          #fi
-
       - name: Fix Less Then 6.6.50 Builds
         if: inputs.android_version == 'android15' && inputs.kernel_version == '6.6' && inputs.sub_level < 50
         run: |
@@ -281,18 +272,51 @@ jobs:
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash $BRANCH
           fi
 
-      - name: Getting SUKISU Version
-        run: |
-          git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git Verfold
-          cd Verfold
-          KSU_GIT_VERSION=$(git rev-list --count HEAD)
+      #- name: Getting SUKISU Version
+        #run: |
+          #git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git Verfold
+          #cd Verfold
+          #KSU_GIT_VERSION=$(git rev-list --count HEAD)
           #KSU_VERSION=$((10700 + KSU_GIT_VERSION + VAR))
-          KSU_VERSION=$((37185 + KSU_GIT_VERSION + VAR))
+          #KSU_VERSION=$((37185 + KSU_GIT_VERSION + VAR))
+          #echo $KSU_VERSION
+          #echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+          #echo "Deleting the directory"
+          #cd ..
+          #rm -rf Verfold 
+
+      - name: Get KSU Versions
+        run: |
+          if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
+            echo "This is the Next variant"
+            git clone https://github.com/KernelSU-Next/KernelSU-Next.git Verfold
+          elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
+            echo "This is the SukiSU variant"
+            git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git Verfold
+          elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
+            echo "This is the Official"
+            git clone https://github.com/tiann/KernelSU.git Verfold
+          elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
+            echo "This is the Official"
+            git clone https://github.com/5ec1cff/KernelSU.git Verfold    
+          else
+            echo "Unknown variant"
+          fi
+          VAR=$([[ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]] && echo 700 || echo 200)
+          cd Verfold
+          # Calculating the KSU version number
+          KSU_GIT_VERSION=$(git rev-list --count HEAD)
+          KSU_VERSION=$((10000 + KSU_GIT_VERSION + VAR))
+          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
+            KSU_VERSION=$((40000 + KSU_GIT_VERSION - 2815))
+          elif [ "${{ inputs.kernelsu_variant }}" == "Official" ] || [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
+            KSU_VERSION=$((20000 + KSU_GIT_VERSION))
+          fi
           echo $KSU_VERSION
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
           echo "Deleting the directory"
           cd ..
-          rm -rf Verfold          
+          rm -rf Verfold 
       
       - name: SUKISU Manager Information
         if: ${{ inputs.kernelsu_variant == 'SukiSU' }}
