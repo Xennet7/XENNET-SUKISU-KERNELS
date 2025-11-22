@@ -704,7 +704,6 @@ jobs:
             rm -rf ./common/android/abi_gki_protected_exports_*
           # Remove dirty blocks
             sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
-
           fi
 
       - name: Configure kernel name (regular build)
@@ -766,7 +765,30 @@ jobs:
             ./patch
             rm -rf Image
             mv oImage Image
-            cd ../../..       
+            cd ../../..      
+
+
+      - name: Define KSU Build Naming
+        run: |
+          if [ "${{ inputs.kernelsu_variant }}" == "Next" ]; then
+            echo "This is the Next variant"
+            KSU_NAME="XKNXT"
+            echo "XNAME=$KSU_NAME" >> $GITHUB_ENV
+          elif [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
+            echo "This is the SukiSU variant"
+            KSU_NAME="XSUKI"
+            echo "XNAME=$KSU_NAME" >> $GITHUB_ENV
+          elif [ "${{ inputs.kernelsu_variant }}" == "Official" ]; then
+            echo "This is the Official"
+            KSU_NAME="XKNSU"
+            echo "XNAME=$KSU_NAME" >> $GITHUB_ENV
+          elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
+            echo "This is the Official"
+            KSU_NAME="XMKSU"
+            echo "XNAME=$KSU_NAME" >> $GITHUB_ENV    
+          else
+            echo "Unknown variant"
+          fi
 
       - name: Create AK3 ZIP
         run: |
