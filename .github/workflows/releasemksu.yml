@@ -1,0 +1,179 @@
+name: Release MKSU
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_call: # This allows this workflow to be called from another workflow
+  workflow_dispatch:
+
+jobs:
+
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+      RELEASE_NAME: "GKI Kernels With MKSU & SUSFS v2.0.0"
+      RELEASE_BODY:
+    steps:
+      #- name: Maximize Build Space
+      #  uses: AdityaGarg8/remove-unwanted-software@v5
+      #  with:
+          # remove-dotnet: 'true'          # Frees ~2 GB
+          # remove-android: 'true'         # Frees ~9 GB
+          # remove-haskell: 'true'         # Frees ~5.2 GB
+          # remove-codeql: 'true'          # Frees ~5.4 GB
+          # remove-docker-images: 'true'   # Frees ~3.2 GB
+          # remove-large-packages: 'true'  # Frees ~3.1 GB
+       #   remove-swapfile: 'true'        # Frees ~4 GB
+          # remove-cached-tools: 'false'   # Avoid unless confirmed safe
+       #   verbose: 'true'                # Enable detailed logging
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get commit hashes and generate commit URLs
+        run: |
+          GITLAB_OWNER="simonpunk"
+          GITLAB_REPO="susfs4ksu"
+          
+          declare -A BRANCH_MAP=(
+            ["gki_android15_6_6"]="gki-android15-6.6"
+          )
+          
+          for var_name in "${!BRANCH_MAP[@]}"; do
+            branch_name="${BRANCH_MAP[$var_name]}"
+            COMMIT_HASH=$(git ls-remote https://gitlab.com/$GITLAB_OWNER/$GITLAB_REPO.git refs/heads/$branch_name | awk '{ print $1 }')
+            
+            if [[ -n "$COMMIT_HASH" ]]; then
+              COMMIT_URL="https://gitlab.com/$GITLAB_OWNER/$GITLAB_REPO/-/commit/$COMMIT_HASH"
+              echo "$branch_name Commit: $COMMIT_HASH"
+              echo "$branch_name Commit URL: $COMMIT_URL"
+              
+              echo "COMMIT_HASH_${var_name}=$COMMIT_HASH" >> "$GITHUB_ENV"
+              echo "COMMIT_URL_${var_name}=$COMMIT_URL" >> "$GITHUB_ENV"
+            fi
+          done
+            
+      - name: Get KernelSU variant refs and links
+        run: |
+          # Get XKNXT latest commit from Next branch
+          WKSU_REF=$(git ls-remote "https://github.com/5ec1cff/KernelSU.git" refs/heads/main | awk '{print $1}')
+          WKSU_URL="https://github.com/5ec1cff/KernelSU/commit/$WKSU_REF"
+          echo "WKSU_REF=$WKSU_REF" >> $GITHUB_ENV
+          echo "WKSU_URL=$WKSU_URL" >> $GITHUB_ENV
+
+          # Get Baseband-guard latest commit from main branch
+          BBG_REF=$(git ls-remote "https://github.com/vc-teahouse/Baseband-guard.git" refs/heads/main | awk '{print $1}')
+          BBG_URL="https://github.com/vc-teahouse/Baseband-guard/commit/$BBG_REF"
+          echo "BBG_REF=$BBG_REF" >> $GITHUB_ENV
+          echo "BBG_URL=$BBG_URL" >> $GITHUB_ENV
+
+      
+      - name: Generate and Create New Tag
+        env:
+            GH_TOKEN: ${{ github.token }}
+        run: |
+            LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
+            if [ -z "$LATEST_TAG" ]; then
+              LATEST_TAG="v1.5.12-r0"
+            fi
+            
+            NEW_TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
+    
+            echo "New tag: $NEW_TAG"
+            echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
+
+            git tag $NEW_TAG
+            git push origin $NEW_TAG
+            
+     
+      - name: Download Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: ./downloaded-artifacts
+          pattern: 'XMKSU-*-AnyKernel3'
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Contents of downloaded-artifacts:"
+          ls -R downloaded-artifacts || echo "Folder empty"
+      
+      - name: Extract selected artifacts cleanly
+        run: |
+          echo "🔍 Selecting and extracting matching artifacts..."
+          mkdir -p temp temp_extract
+          # Step 1: Move only matching zips to temp/
+          MATCH_ZIP_PATTERNS=("*XMKSU-*-AnyKernel3")
+          for pattern in "${MATCH_ZIP_PATTERNS[@]}"; do
+          find downloaded-artifacts -maxdepth 2 -type f -name "$pattern" -exec mv -f {} temp/ \;
+          done
+          echo "✅ Selected zips moved to temp/:"
+          ls -lh temp/ || echo "No matching zips found!"
+          # Step 2: Extract zips from temp/ to temp_extract/
+          for zipfile in temp/*.zip; do
+          [ -e "$zipfile" ] || continue
+          echo "📦 Extracting: $zipfile"
+          unzip -q "$zipfile" -d temp_extract/
+          done
+          # Step 3: Move extracted files (not just zips) back to downloaded-artifacts/
+          MATCH_FILE_PATTERNS=("*-XMKSU-*-AnyKernel3")
+          for pattern in "${MATCH_FILE_PATTERNS[@]}"; do
+          find temp_extract -type f -name "$pattern" -exec mv -f {} downloaded-artifacts/ \;
+          done
+          # Step 4: Clean up
+          echo "🧹 Cleaning temporary folders..."
+          rm -rf temp temp_extract
+          echo "✅ Final files in downloaded-artifacts/:"
+          ls -lh downloaded-artifacts/ || echo "No extracted files found."
+     
+      - name: Set release body
+        run: |
+          cat << 'EOF' > release_body.md
+      
+          **✨ XENNET MKSU**
+          **🌀 XMKSU v13454**
+          **🛡️ SUSFS ඞ v2.0.0**
+          **🌐 IPSet Support for Advanced Network Filtering**
+          **🟢 WireGuard Support**
+          **🚀 BBR v1 Support**
+          **🔒 BBG Protection to Prevent Unauthorized Writes to Certain Partitions**
+        
+          Commit Hashes (at the time of release):
+          -> XENNET MKSU: [${{ env.WKSU_REF }}](${{ env.WKSU_URL }})
+
+          -> Baseband-guard: [${{ env.BBG_REF }}](${{ env.BBG_URL }})
+          
+          -> SUSFS4KSU:
+            -> gki-android15-6.6: [${{ env.COMMIT_HASH_gki_android15_6_6 }}](${{ env.COMMIT_URL_gki_android15_6_6 }})
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.NEW_TAG }}
+          prerelease: false
+          files: ""
+          name: ${{ env.RELEASE_NAME }}
+          body_path: release_body.md
+
+      - name: Upload Release Assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for file in ./downloaded-artifacts/*/*; do
+            if [ -d "$file" ]; then
+              continue
+            fi
+            echo "Uploading $file..."
+            gh release upload ${{ env.NEW_TAG }} "$file"
+          done
+
+          
+      - name: Display Files Uploaded
+        run: |
+          echo "GitHub release created with the following files:"
+          ls ./downloaded-artifacts/**/*
+            
+    
