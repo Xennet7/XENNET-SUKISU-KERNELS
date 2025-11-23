@@ -1,4 +1,4 @@
-name: Release Next
+name: Release NEXT
 
 permissions:
   contents: write
