@@ -1,4 +1,4 @@
-name: Genereal Release
+name: General Release Script
 
 permissions:
   contents: write
